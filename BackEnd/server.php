@@ -1,7 +1,11 @@
 <?php
-namespace MyApp;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use Ratchet\Server\IoServer;
+use Ratchet\Http\HttpServer;
+use Ratchet\WebSocket\WsServer;
+
+require_once __DIR__ . '/vendor/autoload.php';
 
 class Chat implements MessageComponentInterface {
 
@@ -37,3 +41,14 @@ class Chat implements MessageComponentInterface {
         echo $e->getMessage();
     }
 }
+
+$server = IoServer::factory(
+    new HttpServer(
+        new WsServer(
+            new Chat()
+        )
+    ),
+    8080
+);
+
+$server->run();

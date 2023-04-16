@@ -1,39 +1,30 @@
 package com.arash.altafi.websocket2
 
 import android.os.Bundle
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.textview.MaterialTextView
-import okhttp3.*
+import com.arash.altafi.websocket2.databinding.ActivityMainBinding
+import com.arash.altafi.websocket2.model.MessageModel
+import com.arash.altafi.websocket2.utils.WebSocketClient
 import org.json.JSONException
-import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
-    private var webSocket: WebSocket? = null
+    private val binding by lazy {
+        ActivityMainBinding.inflate(layoutInflater)
+    }
+    private var webSocket: WebSocketClient? = null
     private var messageAdapter: MessageAdapter = MessageAdapter()
-    private lateinit var messageList: RecyclerView
-    private lateinit var messageBox: EditText
-    private lateinit var send: MaterialTextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
 
-        bindViews()
         init()
-        instantiateWebSocket()
+        setupWebSocket()
     }
 
-    private fun bindViews() {
-        messageList = findViewById(R.id.messageList)
-        messageBox = findViewById(R.id.messageBox)
-        send = findViewById(R.id.send)
-    }
-
-    private fun init() {
+    private fun init() = binding.apply {
         messageList.apply {
             adapter = messageAdapter
             layoutManager = LinearLayoutManager(applicationContext)
@@ -44,23 +35,28 @@ class MainActivity : AppCompatActivity() {
             if (message.isNotEmpty()) {
                 webSocket?.send(message)
                 messageBox.setText("")
-                val jsonObject = JSONObject()
+                val messageModel = MessageModel(message, false)
+                messageAdapter.addItem(messageModel)
+            }
+        }
+    }
+
+    private fun setupWebSocket() = binding.apply {
+        webSocket = WebSocketClient(URL) { message ->
+            runOnUiThread {
                 try {
-                    jsonObject.put("message", message)
-                    jsonObject.put("byServer", false)
-                    messageAdapter.addItem(jsonObject)
+                    val messageModel = MessageModel(message, true)
+                    messageAdapter.addItem(messageModel)
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
             }
         }
+        webSocket?.connect()
     }
 
-    private fun instantiateWebSocket() {
-        val client = OkHttpClient()
-        val request: Request = Request.Builder().url("ws://192.168.1.101:3000").build()
-        val socketListener = SocketListener(this, messageAdapter)
-        webSocket = client.newWebSocket(request, socketListener)
+    private companion object {
+        const val URL = "ws://192.168.1.101:8080"
     }
 
 }

@@ -4,53 +4,47 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.textview.MaterialTextView
+import com.arash.altafi.websocket2.databinding.MessageListItemBinding
+import com.arash.altafi.websocket2.model.MessageModel
 import org.json.JSONException
-import org.json.JSONObject
 
-class MessageAdapter: RecyclerView.Adapter<MessageAdapter.ViewHolder>() {
+class MessageAdapter : RecyclerView.Adapter<MessageAdapter.ViewHolder>() {
 
-    private val messagesList: MutableList<JSONObject> = ArrayList()
+    private val messagesList: ArrayList<MessageModel> = ArrayList()
 
-    fun addItem(item: JSONObject) {
-        messagesList.add(item)
+    fun addItem(messageModel: MessageModel) {
+        messagesList.add(messageModel)
         notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.message_list_item, parent, false)
-        return ViewHolder(view)
+        val binding = MessageListItemBinding.inflate(LayoutInflater.from(parent.context))
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = messagesList[position]
         try {
-            if (item.getBoolean("byServer")) {
-                holder.receivedMessage.visibility = View.VISIBLE
-                holder.receivedMessage.text = item.getString("message")
-                holder.sentMessage.visibility = View.INVISIBLE
-            } else {
-                holder.sentMessage.visibility = View.VISIBLE
-                holder.sentMessage.text = item.getString("message")
-                holder.receivedMessage.visibility = View.INVISIBLE
-            }
+            holder.bind(item)
         } catch (e: JSONException) {
             e.printStackTrace()
         }
     }
 
-    override fun getItemCount(): Int {
-        return messagesList.size
-    }
+    override fun getItemCount(): Int = messagesList.size
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var sentMessage: MaterialTextView
-        var receivedMessage: MaterialTextView
-
-        init {
-            sentMessage = itemView.findViewById(R.id.sentMessage)
-            receivedMessage = itemView.findViewById(R.id.receivedMessage)
+    inner class ViewHolder(private val binding: MessageListItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: MessageModel) = binding.apply {
+            if (item.byServer) {
+                receivedMessage.visibility = View.VISIBLE
+                receivedMessage.text = item.message
+                sentMessage.visibility = View.INVISIBLE
+            } else {
+                sentMessage.visibility = View.VISIBLE
+                sentMessage.text = item.message
+                receivedMessage.visibility = View.INVISIBLE
+            }
         }
     }
 }
