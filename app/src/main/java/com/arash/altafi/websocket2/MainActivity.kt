@@ -2,7 +2,6 @@ package com.arash.altafi.websocket2
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.arash.altafi.websocket2.databinding.ActivityMainBinding
 import com.arash.altafi.websocket2.model.MessageModel
 import com.arash.altafi.websocket2.utils.WebSocketClient
@@ -27,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     private fun init() = binding.apply {
         messageList.apply {
             adapter = messageAdapter
-            layoutManager = LinearLayoutManager(applicationContext)
         }
 
         send.setOnClickListener {
